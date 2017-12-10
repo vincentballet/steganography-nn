@@ -35,3 +35,4 @@ See the arguments in `decoder.py`
 
 ## Credits
 This code is based on tbfang/steganography-lstm.
+The character-level rnn is based on [Practical PyTorch: Generating Shakespeare with a Character-Level RNN](https://github.com/spro/practical-pytorch/blob/master/char-rnn-generation/char-rnn-generation.ipynb)
