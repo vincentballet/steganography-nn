@@ -29,7 +29,7 @@ See the arguments in `generate.py` or refer to the [PyTorch example README](http
 ## Stegotext decoding
 Given that we know the seed that was used to generate to stegotext, we can decode it.
 
-` decoder.py --data './data/tweets' --checkpoint './models/twitter-model.pt' --cuda --bins 8 --model_char_nn './tools/rnn_char/models/tinyshakespeare.pt' --encoded_file './outputs/stegotext.txt' --replication_factor 3 --save_corpus --next_character 10 --save_bins --num_tokens 20 --common_bin_factor 4 `
+` python decoder.py --data './data/tweets' --checkpoint './models/twitter-model.pt' --cuda --bins 8 --model_char_nn './tools/rnn_char/models/tinyshakespeare.pt' --encoded_file './outputs/stegotext.txt' --replication_factor 3 --save_corpus --next_character 10 --save_bins --num_tokens 20 --common_bin_factor 4 `
 
 See the arguments in `decoder.py`
 
