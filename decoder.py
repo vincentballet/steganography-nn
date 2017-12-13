@@ -66,7 +66,7 @@ def run(parser=None, args_dic=None, plaintext=None):
     elif args_dic:
         
         print("Running code from code " + "+" * 100)
-        ABS_PATH = "/home/ballet/steganography/"
+        ABS_PATH = "/home/ballet/steganography-nn/"
         a_data = args_dic['data']
         a_checkpoint = args_dic['checkpoint']
         a_cuda = args_dic['cuda']

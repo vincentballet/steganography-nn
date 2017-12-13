@@ -52,7 +52,7 @@ def run(parser=None, args_dic=None, plaintext=None):
     elif args_dic:
         
         print("Running code from code " + "+" * 100)
-        ABS_PATH = "/home/ballet/steganography/"
+        ABS_PATH = "/home/ballet/steganography-nn/"
         a_data = args_dic['data']
         a_checkpoint = args_dic['checkpoint']
         a_cuda = args_dic['cuda']
@@ -157,7 +157,8 @@ def run(parser=None, args_dic=None, plaintext=None):
                 word = process.get_next_word(input, word_weights, corpus)
 
                 word = word.encode('ascii', 'ignore').decode('ascii')
-                outf.write(' ' + word)
+                if w > 0: outf.write(' ')
+                outf.write(word)
 
                 if word not in common_tokens:
                     i += 1
@@ -167,7 +168,6 @@ def run(parser=None, args_dic=None, plaintext=None):
                     print("Total number of words", w)
                     print("Total length of secret", i)
                     print('| Generated {}/{} words'.format(i, len(secret_text)))
-            outf.write('.')
 
 
         with open(a_outf, 'r') as out:
