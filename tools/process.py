@@ -17,14 +17,15 @@ def is_ascii(s):
 
 #helper to load a pre-existing corpus and saving it
 def load_corpus_and_save(a_corpus_name, ABS_PATH, a_data):
-    if os.path.isfile(ABS_PATH + "save_corpus/corpus_{}.obj".format(a_corpus_name)):
-        print("Loading the corpus")
-        with open(ABS_PATH + "save_corpus/corpus_{}.obj".format(a_corpus_name), 'rb') as pickle_file:
+    path_corpus = ABS_PATH + "save_corpus/corpus_{}.obj".format(a_corpus_name)
+    if os.path.isfile(path_corpus):
+        print("Loading corpus : {}".format(path_corpus))
+        with open(path_corpus, 'rb') as pickle_file:
             corpus = pickle.load(pickle_file)
     else:
-        print("Creating the corpus")
+        print("Creating corpus : {}".format(path_corpus))
         corpus = data.Corpus(a_data)
-        filehandler = open(ABS_PATH + "save_corpus/corpus_{}.obj".format(a_corpus_name), 'wb')
+        filehandler = open(path_corpus, 'wb')
         pickle.dump(corpus, filehandler)
     return corpus
 
@@ -32,14 +33,10 @@ def load_corpus_and_save(a_corpus_name, ABS_PATH, a_data):
 def generating_bins(ABS_PATH,  a_corpus_name, a_bins, a_common_bin_factor, a_replication_factor, a_seed,
                     a_num_tokens, a_save_bins, corpus):
     # if we want to load the bins and save it if it exists
-    if os.path.isfile(
-                    ABS_PATH + 'save_bins/corpus_name{}bin{}common_bin_factor{}replication_factor{}seed{}num_tokens{}.npz'.format(
-                    a_corpus_name, a_bins, a_common_bin_factor, a_replication_factor, a_seed,
-                    a_num_tokens)) and a_save_bins:
-        print("Loading an existing bins model")
-        loaded_model = np.load(
-            ABS_PATH + 'save_bins/corpus_name{}bin{}common_bin_factor{}replication_factor{}seed{}num_tokens{}.npz'.format(
-                a_corpus_name, a_bins, a_common_bin_factor, a_replication_factor, a_seed, a_num_tokens))
+    path_bins_model = ABS_PATH + 'save_bins/corpus_name{}bin{}common_bin_factor{}replication_factor{}seed{}num_tokens{}.npz'.format(a_corpus_name, a_bins, a_common_bin_factor, a_replication_factor, a_seed, a_num_tokens)
+    if os.path.isfile(path_bins_model) and a_save_bins:
+        print("Loading bins model : {}".format(path_bins_model))
+        loaded_model = np.load(path_bins_model)
         bins = loaded_model['np_bins'].tolist()
         zero = loaded_model["np_zero"].tolist()
         common_tokens = loaded_model["np_common_tokens"].tolist()
@@ -47,7 +44,7 @@ def generating_bins(ABS_PATH,  a_corpus_name, a_bins, a_common_bin_factor, a_rep
         ###############################################################################
         # Generation of bins
     else:
-        print("Creating the bins model")
+        print("Creating bins model : {}".format(path_bins_model))
         bins, zero, common_tokens = generate_bins(
             corpus=corpus,
             nbr_bins=a_bins,
