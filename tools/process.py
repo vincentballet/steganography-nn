@@ -128,16 +128,13 @@ def generate_bins(corpus, nbr_bins, num_tokens, common_bin_factor, replication_f
 def get_random_string(nbr_bins, nbr_words):
     return np.random.choice(range(nbr_bins), nbr_words)
 
-def get_secret_text(filename, nbr_bins):
-    secret_file = open(filename, 'r')
-    secret_data = secret_file.read()
+def get_secret_text(secret_text, nbr_bins):
     #creating the string with the encoding of the letters and padding
-    bit_string = ''.join(bin(ord(letter))[2:].zfill(8) for letter in secret_data)
+    bit_string = ''.join(bin(ord(letter))[2:].zfill(8) for letter in secret_text)
     # secret_text = np.random.choice(range(args.bins), args.words)
     #an integer object from the given number in base 2
-    secret_text = [int(i,2) for i in string2bins(bit_string, nbr_bins)]
-
-    return secret_text
+    secret_text_patched = [int(i,2) for i in string2bins(bit_string, nbr_bins)]
+    return secret_text_patched
 
 #get the next word output of the neural network
 def get_next_word(input, word_weights, corpus):
