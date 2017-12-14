@@ -135,48 +135,47 @@ def run(parser=None, args_dic=None, plaintext=None):
         # Generation of stegotext
         print('Generating Stegotext')
 
+        stegotext = []
+        w = 0 
+        i = 1
+        bin_sequence_length = len(secret_text[:]) # 85
+
+        while i <= bin_sequence_length:
+            output, hidden = model(input, hidden)
+
+            #building the Tensor with our bins
+            zero_index = zero[secret_text[:][i-1]]
+            zero_index = torch.LongTensor(zero_index)
+
+            word_weights = output.squeeze().data.div(a_temperature).exp().cpu()
+
+            #in case the bin contains all the words, don't constrain
+            if(len(zero_index)>0):
+                word_weights.index_fill_(0, zero_index, 0)
+
+            #get the next word
+            word = process.get_next_word(input, word_weights, corpus)
+
+            word = word.encode('ascii', 'ignore').decode('ascii')
+            stegotext.append(word)
+
+            if word not in common_tokens:
+                i += 1
+            w += 1
+
+            if i % a_log_interval == 0:
+                print("Total number of words", w)
+                print("Total length of secret", i)
+                print('| Generated {}/{} words'.format(i, len(secret_text)))
+
+        stegotext_str = ' '.join(stegotext)
         with open(a_outf, 'w') as outf:
-            w = 0 
-            i = 1
-            bin_sequence_length = len(secret_text[:]) # 85
+            outf.write(stegotext_str)
 
-            while i <= bin_sequence_length:
-                output, hidden = model(input, hidden)
-
-                #building the Tensor with our bins
-                zero_index = zero[secret_text[:][i-1]]
-                zero_index = torch.LongTensor(zero_index)
-
-                word_weights = output.squeeze().data.div(a_temperature).exp().cpu()
-
-                #in case the bin contains all the words, don't constrain
-                if(len(zero_index)>0):
-                    word_weights.index_fill_(0, zero_index, 0)
-
-                #get the next word
-                word = process.get_next_word(input, word_weights, corpus)
-
-                word = word.encode('ascii', 'ignore').decode('ascii')
-                if w > 0: outf.write(' ')
-                outf.write(word)
-
-                if word not in common_tokens:
-                    i += 1
-                w += 1
-
-                if i % a_log_interval == 0:
-                    print("Total number of words", w)
-                    print("Total length of secret", i)
-                    print('| Generated {}/{} words'.format(i, len(secret_text)))
-
-
-        with open(a_outf, 'r') as out:
-            print(out.read())
-    
         print('Time: {:5.2f}s'.format(time.time() - epoch_start_time))
         print('Finished Generating Stegotext')
         print('-' * 89)
-
+        return stegotext_str
 
 #Ran from terminal
 if __name__ == '__main__':
@@ -215,4 +214,5 @@ if __name__ == '__main__':
     parser.add_argument('--save_corpus', action='store_true', default=False)
     parser.add_argument('--save_bins', action='store_true', default=False)
 
-    run(parser=parser)
+    stegotext_str = run(parser=parser)
+    print("Generated stegotext : {}".format(stegotext_str))
