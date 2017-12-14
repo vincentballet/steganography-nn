@@ -49,6 +49,10 @@ def run(parser=None, args_dic=None, plaintext=None):
         if args.temperature < 1e-3:
             parser.error("--temperature has to be greater or equal 1e-3")
 
+        with open(a_secret_file, 'r') as myfile:
+            a_secret_text = myfile.read()
+
+
     elif args_dic:
         
         print("Running code from code " + "+" * 100)
@@ -61,7 +65,6 @@ def run(parser=None, args_dic=None, plaintext=None):
         a_bins = args_dic['bins']
         a_common_bin_factor = args_dic['common_bin_factor']
         a_num_tokens = args_dic['num_tokens']
-        a_secret_file = args_dic['secret_file']
         a_outf = args_dic['outf']
         a_replication_factor = args_dic['replication_factor']
         a_seed = args_dic['seed']
@@ -70,12 +73,9 @@ def run(parser=None, args_dic=None, plaintext=None):
         a_save_corpus = args_dic['save_corpus']
         a_save_bins = args_dic['save_bins']
         a_corpus_name = args_dic['corpus_name']
-
         if a_temperature < 1e-3:
             print("temperature has to be greater or equal 1e-3")
-
-        with open(a_secret_file, 'w') as myfile:
-            myfile.write(plaintext)  # python will convert \n to os.linesep
+        a_secret_text = plaintext
 
      
     #starting the counter
@@ -120,7 +120,7 @@ def run(parser=None, args_dic=None, plaintext=None):
     if a_random:
         secret_text = process.get_random_string(a_bins, a_words)
     else:
-        secret_text = process.get_secret_text(a_secret_file, a_bins)
+        secret_text = process.get_secret_text(a_secret_text, a_bins)
 
     if a_bins > 1:
         #if we want to load the bins and save it if it exists

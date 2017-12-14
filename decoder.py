@@ -32,7 +32,7 @@ from tools.rnn_char.model_char.model import *
 def onlyascii(char):
     return (ord(char) > 48 and ord(char) < 127) or char==' ' or char=='?'
 
-def run(parser=None, args_dic=None, plaintext=None):
+def run(parser=None, args_dic=None, encoded_text=None):
     epoch_start_time = time.time()
     
     if parser:
@@ -60,8 +60,11 @@ def run(parser=None, args_dic=None, plaintext=None):
         a_model_char_nn = args.model_char_nn
         a_ascii_only = args.ascii_only
         a_lower_case_only = args.lower_case_only
+        a_spellcheck = args.spellcheck
         if args.temperature < 1e-3:
             parser.error("--temperature has to be greater or equal 1e-3")
+        with open(a_encoded_file, 'r') as myfile:
+            encoded_data =myfile.read()
 
     elif args_dic:
         
@@ -85,15 +88,13 @@ def run(parser=None, args_dic=None, plaintext=None):
         a_corpus_name = args_dic['corpus_name']
         a_compressed = args_dic['compressed']
         a_next_character =args_dic['next_character']
-        a_encoded_file = args_dic['encoded_file']
         a_model_char_nn = args_dic['model_char_nn']
         a_ascii_only = args_dic['ascii_only']
         a_lower_case_only = args_dic['lower_case_only']
-
+        a_spellcheck = args_dic['spellcheck']
         if a_temperature < 1e-3:
             print("temperature has to be greater or equal 1e-3")
-        with open(a_encoded_file, 'w') as myfile:
-            myfile.write(plaintext)  # python will convert \n to os.linesep
+        encoded_data = encoded_text
 
 
     torch.nn.Module.dump_patches = True
@@ -386,7 +387,6 @@ def run(parser=None, args_dic=None, plaintext=None):
                         a_num_tokens, a_save_bins, corpus)
 
         #extracting the data tokens
-        encoded_data = open(a_encoded_file, 'r').read()
         encoded_data = process.pre_process_received_string(encoded_data)
         encoded_data_words = encoded_data.split()
         encoded_data_tokens = [corpus.dictionary.word2idx[w] for w in encoded_data_words]
@@ -471,6 +471,8 @@ if __name__ == '__main__':
     parser.add_argument('--next_character', type=int, default=10)
     parser.add_argument('--ascii_only', action='store_true',default=True)
     parser.add_argument('--lower_case_only', action='store_true',default=True)
+    parser.add_argument('--spellcheck', action='store_true',default=True)
     ###############################################################################
     # Init
-    run(parser=parser)
+    decoded = run(parser=parser)
+    print("Decoded text : {}".format(decoded))
