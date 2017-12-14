@@ -387,7 +387,6 @@ def run(parser=None, args_dic=None, encoded_text=None):
                         a_num_tokens, a_save_bins, corpus)
 
         #extracting the data tokens
-        encoded_data = process.pre_process_received_string(encoded_data)
         encoded_data_words = encoded_data.split()
         encoded_data_tokens = [corpus.dictionary.word2idx[w] for w in encoded_data_words]
 

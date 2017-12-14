@@ -178,5 +178,3 @@ def remove_padding(bin_len, to_remove, bitstring, a_bins):
 def join_character_from_bitstring(bitstring,idx,step):
     return chr(int(''.join(bitstring)[idx:idx+step], base=2))
 
-def pre_process_received_string(encoded_data):
-    return encoded_data[:-1]
