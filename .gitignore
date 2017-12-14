@@ -1,6 +1,11 @@
 # Custom
 __pycache__
-
+demo
+outputs
+save_bins
+save_corpus
+documentation
+models
 
 # Created by https://www.gitignore.io/api/git,cuda,python,pycharm
 
