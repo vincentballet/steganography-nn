@@ -21,7 +21,7 @@ from tools.rnn_language_training import data
 import zlib
 import io
 from tools import process
-
+import tools.parser as parser
 from tools.rnn_char import helpers
 from tools.rnn_char import possible_strings
 from tools.rnn_char import generate
@@ -32,67 +32,23 @@ from tools.rnn_char.model_char.model import *
 def onlyascii(char):
     return (ord(char) > 48 and ord(char) < 127) or char==' ' or char=='?'
 
-def run(parser=None, args_dic=None, encoded_text=None):
+def run(p=None, args_dic=None, encoded_text=None):
     epoch_start_time = time.time()
     
-    if parser:
-        args = parser.parse_args()
+    if p:
         print("Running code from terminal " + "-" * 100)
         ABS_PATH = os.path.abspath(".") + '/'
-        a_data = args.data
-        a_checkpoint = args.checkpoint
-        a_cuda = args.cuda 
-        a_words = args.words
-        a_temperature =  args.temperature
-        a_bins = args.bins
-        a_common_bin_factor = args.common_bin_factor
-        a_num_tokens = args.num_tokens
-        a_replication_factor = args.replication_factor
-        a_seed = args.seed
-        a_random = args.random
-        a_log_interval = args.log_interval
-        a_save_corpus = args.save_corpus
-        a_save_bins = args.save_bins
-        a_corpus_name = args.corpus_name
-        a_compressed = args.compressed
-        a_next_character = args.next_character
-        a_encoded_file = args.encoded_file
-        a_model_char_nn = args.model_char_nn
-        a_ascii_only = args.ascii_only
-        a_lower_case_only = args.lower_case_only
-        a_spellcheck = args.spellcheck
+        args = p.parse_args()
+        args_dic = parser.args_to_dic(args)
         if args.temperature < 1e-3:
-            parser.error("--temperature has to be greater or equal 1e-3")
-        with open(a_encoded_file, 'r') as myfile:
-            encoded_data =myfile.read()
+            p.error("--temperature has to be greater or equal 1e-3")
+        with open(args_dic['encoded_file'], 'r') as myfile:
+            encoded_data = myfile.read()
 
     elif args_dic:
-        
         print("Running code from code " + "+" * 100)
         ABS_PATH = "/home/ballet/steganography-nn/"
-        a_data = args_dic['data']
-        a_checkpoint = args_dic['checkpoint']
-        a_cuda = args_dic['cuda']
-        a_words = args_dic['words']
-        a_temperature =  args_dic['temperature']
-        a_bins = args_dic['bins']
-        a_common_bin_factor = args_dic['common_bin_factor']
-        a_num_tokens = args_dic['num_tokens']
-        a_outf = args_dic['outf']
-        a_replication_factor = args_dic['replication_factor']
-        a_seed = args_dic['seed']
-        a_random = args_dic['random']
-        a_log_interval = args_dic['log_interval']
-        a_save_corpus = args_dic['save_corpus']
-        a_save_bins = args_dic['save_bins']
-        a_corpus_name = args_dic['corpus_name']
-        a_compressed = args_dic['compressed']
-        a_next_character =args_dic['next_character']
-        a_model_char_nn = args_dic['model_char_nn']
-        a_ascii_only = args_dic['ascii_only']
-        a_lower_case_only = args_dic['lower_case_only']
-        a_spellcheck = args_dic['spellcheck']
-        if a_temperature < 1e-3:
+        if args_dic['temperature'] < 1e-3:
             print("temperature has to be greater or equal 1e-3")
         encoded_data = encoded_text
 
@@ -100,35 +56,35 @@ def run(parser=None, args_dic=None, encoded_text=None):
     torch.nn.Module.dump_patches = True
 
     # Set the random seed manually for reproducibility.
-    torch.manual_seed(a_seed)
+    torch.manual_seed(args_dic['seed'])
     # Get the same bins ordering as in the generting part
-    random.seed(a_seed)
+    random.seed(args_dic['seed'])
     if torch.cuda.is_available():
-        if not a_cuda:
+        if not args_dic['cuda']:
             print("WARNING: You have a CUDA device, so you should probably run with --cuda")
         else:
-            torch.cuda.manual_seed(a_seed)
+            torch.cuda.manual_seed(args_dic['seed'])
 
 
-    with open(a_checkpoint, 'rb') as f:
+    with open(args_dic['checkpoint'], 'rb') as f:
         model = torch.load(f)
 
-    if a_cuda:
+    if args_dic['cuda']:
         model.cuda()
     else:
         model.cpu()
 
     #if we want to save the corpus and load the model if it exists
-    if a_save_corpus:
-        corpus = process.load_corpus_and_save(a_corpus_name, ABS_PATH, a_data)
+    if args_dic['save_corpus']:
+        corpus = process.load_corpus_and_save(args_dic['corpus_name'], ABS_PATH, args_dic['data'])
     else:
-        corpus = data.Corpus(a_data)
+        corpus = data.Corpus(args_dic['data'])
 
     ntokens = len(corpus.dictionary)
     hidden = model.init_hidden(1)
     input = Variable(torch.rand(1, 1).mul(ntokens).long(), volatile=True)
 
-    if a_cuda:
+    if args_dic['cuda']:
         input.data = input.data.cuda()
 
 
@@ -154,7 +110,7 @@ def run(parser=None, args_dic=None, encoded_text=None):
             #handling padding
             if to_remove > 0:
                 to_re_add = int_bin_len - to_remove
-                to_save = bitstring[-a_bins:]
+                to_save = bitstring[-args_dic['bins']:]
                 bitstring = bitstring[:- int_bin_len]
                 bitstring = bitstring + to_save[-to_re_add:]
 
@@ -182,7 +138,7 @@ def run(parser=None, args_dic=None, encoded_text=None):
 
 
         #computing the number of tupples needed to represent a char
-        index_tupple = math.ceil(step/int(np.log2(a_bins)))
+        index_tupple = math.ceil(step/int(np.log2(args_dic['bins'])))
 
         sets_of_letters = []
 
@@ -203,7 +159,7 @@ def run(parser=None, args_dic=None, encoded_text=None):
                 for tup in all_decoded_strings:
                     bitstring = ''.join(tup)
                     if to_remove > 0:
-                        bitstring = process.remove_padding(bin_len, to_remove, bitstring, a_bins)
+                        bitstring = process.remove_padding(bin_len, to_remove, bitstring, args_dic['bins'])
                     set_char.add(process.join_character_from_bitstring(bitstring,idx,step))
                 sets_of_letters.append(list(set_char))
 
@@ -222,7 +178,7 @@ def run(parser=None, args_dic=None, encoded_text=None):
 
             #getting the index of  most probable combination if there is more than one combinations
             if len(combinaison_letter) > 1:
-                index = possible_strings.next_letters_table(a_model_char_nn,combinaison_letter,a_next_character)[0]
+                index = possible_strings.next_letters_table(args_dic['model_char_nn'],combinaison_letter,args_dic['next_character'])[0]
             else:
                 index = 0
 
@@ -241,7 +197,7 @@ def run(parser=None, args_dic=None, encoded_text=None):
     def decode_simple_gzipped(all_decoded_strings):
         # Number of stegowords needed to encode a character in ascii
         LEN_HEADER = 11
-        NBR_STEGOWORDS_PER_CHAR = (8 / np.log2(a_bins))
+        NBR_STEGOWORDS_PER_CHAR = (8 / np.log2(args_dic['bins']))
         NBR_IGNORED_STEGOWORDS = int(LEN_HEADER * NBR_STEGOWORDS_PER_CHAR)
 
         # This is a generic header for our machine. See http://www.onicos.com/staff/iz/formats/gzip.html
@@ -298,9 +254,9 @@ def run(parser=None, args_dic=None, encoded_text=None):
         #Number of stegowords needed to encode a character in ascii
         LEN_HEADER = 11
         LEN_FOOTER = 8
-        NBR_STEGOWORDS_PER_CHAR = (8 / np.log2(a_bins))
+        NBR_STEGOWORDS_PER_CHAR = (8 / np.log2(args_dic['bins']))
         NBR_IGNORED_STEGOWORDS = int(LEN_HEADER * NBR_STEGOWORDS_PER_CHAR)
-        NBR_IGNORED_BITS = LEN_HEADER * int(np.log2(a_bins))
+        NBR_IGNORED_BITS = LEN_HEADER * int(np.log2(args_dic['bins']))
         #This is a generic header for our machine. See http://www.onicos.com/staff/iz/formats/gzip.html
         header = b'\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\x03s'
 
@@ -310,7 +266,7 @@ def run(parser=None, args_dic=None, encoded_text=None):
         #We don't need to spend time decoding the 11 first steogwords because it is gonna be the header of the zipped file
         zipped_io.write(header)
 
-        LENGTH = len(all_decoded_strings[0]) * int(np.log2(a_bins))
+        LENGTH = len(all_decoded_strings[0]) * int(np.log2(args_dic['bins']))
 
         sets_of_letters = []
         print("{}, {}".format(LENGTH, step))
@@ -338,7 +294,7 @@ def run(parser=None, args_dic=None, encoded_text=None):
 
                 # If there is more than one possibility, ask the nn to output the best one
                 if len(combinations) > 1:
-                    oredered_combinations = possible_strings.next_letters_table(a_model_char_nn, combinations, a_next_character)
+                    oredered_combinations = possible_strings.next_letters_table(args_dic['model_char_nn'], combinations, args_dic['next_character'])
                     if len(oredered_combinations) > 0:
                         best_combination = oredered_combinations[0]
                     else:
@@ -361,12 +317,13 @@ def run(parser=None, args_dic=None, encoded_text=None):
     def recursion_decode(encoded_words_bins, previous, start):
         lcm_step_bin = (int(process.lcm(step, bin_len) / bin_len)) * 2
 
-        if a_replication_factor > 1:
-            if not a_compressed:
+        if args_dic['replication_factor'] > 1:
+            if not args_dic['compressed']:
                 # We need to split recursively in order for the cartesian product to be possible
                 if len(encoded_words_bins) > (lcm_step_bin + math.ceil(step / bin_len)):
                     #decode the first part
                     decode_replicated_string = decode_replicated(list(itertools.product(*encoded_words_bins[:lcm_step_bin])), step, previous, start)
+
                     if decode_replicated_string == "error_decoding":
                         return decode_replicated_string
                     #call recursively the remaining part
@@ -376,15 +333,15 @@ def run(parser=None, args_dic=None, encoded_text=None):
             else:
                 decode_replicated_gzipped(all_decoded_strings)
         else:
-            if not a_compressed:
+            if not args_dic['compressed']:
                 to_return = decode_simple(list(itertools.product(*encoded_words_bins)))
             else:
                 decode_simple_gzipped(all_decoded_strings)
         return to_return
 
-    if a_bins > 1:
-        bins, zero, common_tokens = process.generating_bins(ABS_PATH, a_corpus_name, a_bins, a_common_bin_factor, a_replication_factor, a_seed,
-                        a_num_tokens, a_save_bins, corpus)
+    if args_dic['bins'] > 1:
+        bins, zero, common_tokens = process.generating_bins(ABS_PATH, args_dic['corpus_name'], args_dic['bins'], args_dic['common_bin_factor'], args_dic['replication_factor'], args_dic['seed'],
+                        args_dic['num_tokens'], args_dic['save_bins'], corpus)
 
         #extracting the data tokens
         encoded_data_words = encoded_data.split()
@@ -406,13 +363,12 @@ def run(parser=None, args_dic=None, encoded_text=None):
         # Len of ascii character
         step = 8
         # Len of bin in bits
-        bin_len = math.log(a_bins, 2)
+        bin_len = math.log(args_dic['bins'], 2)
         #integer bin len
         int_bin_len = int(bin_len)
 
 
         start_time = time.time()
-
         #recursively trying to decode
         final_solution= recursion_decode(encoded_words_bins,'',0)
 
@@ -429,49 +385,6 @@ def run(parser=None, args_dic=None, encoded_text=None):
 
 #Ran from terminal
 if __name__ == '__main__':
-
-
-    parser = argparse.ArgumentParser(description='PyTorch PTB Language Model')
-
-    # Model parameters.
-    parser.add_argument('--data', type=str, default='./data/penn',
-                        help='location of the data corpus')
-    parser.add_argument('--checkpoint', type=str, default='./model.pt',
-                        help='model checkpoint to use')
-    parser.add_argument('--encoded_file', type=str, default='./results/stegotweets.txt',
-                        help='location of the encoded text file')
-    parser.add_argument('--words', type=int, default='1000',
-                        help='number of words to generate')
-    parser.add_argument('--seed', type=int, default=1111,
-                        help='random seed')
-    parser.add_argument('--cuda', action='store_true',
-                        help='use CUDA')
-    parser.add_argument('--temperature', type=float, default=0.8,
-                        help='temperature - higher will increase diversity')
-    parser.add_argument('--log-interval', type=int, default=100,
-                        help='reporting interval')
-    parser.add_argument('--bins', type=int, default=2,
-                        help='number of word bins')
-    parser.add_argument('--replication_factor', type=int, default=1,
-                        help='number of bins each word appears')
-    parser.add_argument('--common_bin_factor', type=int, default=0,
-                        help='how many bins to add common words')
-    parser.add_argument('--num_tokens', type=int, default=0,
-                        help='adding top freq number of words to each bin')
-    parser.add_argument('--random', action='store_true',
-                        help='use randomly generated sequence')
-    parser.add_argument('--compressed', action='store_true',
-                        help='stegotext has been compressed using gzip')
-    parser.add_argument('--model_char_nn', type=str,
-                        help='which model the character neural network should be train on')
-    parser.add_argument('--corpus_name', default='big_tweets')
-    parser.add_argument('--save_corpus', action='store_true', default=False)
-    parser.add_argument('--save_bins', action='store_true', default=False)
-    parser.add_argument('--next_character', type=int, default=10)
-    parser.add_argument('--ascii_only', action='store_true',default=True)
-    parser.add_argument('--lower_case_only', action='store_true',default=True)
-    parser.add_argument('--spellcheck', action='store_true',default=True)
-    ###############################################################################
-    # Init
-    decoded = run(parser=parser)
+    p = parser.get_parser()
+    decoded = run(p=p)
     print("Decoded text : {}".format(decoded))
