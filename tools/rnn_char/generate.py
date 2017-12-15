@@ -14,7 +14,7 @@ from torch.autograd import Variable
 
 warnings.simplefilter("ignore", UserWarning)
 
-def generate(decoder, prime_str='A', predict_len=100, temperature=0.8, cuda=False, letters_number=10):
+def generate(decoder, prime_str='A', predict_len=100, temperature=0.8, cuda=False, letters_number=10, reaching_end=False):
     global output_dist
     hidden = decoder.init_hidden(1)
     prime_input = Variable(helpers.char_tensor(prime_str).unsqueeze(0))
@@ -48,6 +48,9 @@ def generate(decoder, prime_str='A', predict_len=100, temperature=0.8, cuda=Fals
             inp = Variable(helpers.char_tensor(predicted_char).unsqueeze(0))
             if cuda:
                 inp = inp.cuda()
+        if reaching_end:
+            possible_char.add(".")
+            possible_char.add("/n")
         return possible_char
 
 # Run as standalone script

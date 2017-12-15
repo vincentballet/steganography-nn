@@ -30,7 +30,7 @@ from tools.rnn_char.model_char.model import *
 
 
 def onlyascii(char):
-    return (ord(char) > 48 and ord(char) < 127) or char==' ' or char=='?'
+    return (ord(char) > 0 and ord(char) < 127) or char==' ' or char=='?'
 
 def run(p=None, args_dic=None, encoded_text=None):
     epoch_start_time = time.time()
@@ -146,13 +146,16 @@ def run(p=None, args_dic=None, encoded_text=None):
         if len(previous) > 0:
             for char in list(previous):
                 sets_of_letters.append(list(char))
+            init=0
 
-        #Getting the first chars set to initialize the nn
-        possible_letters = get_ascii_set(0,all_decoded_strings)
-        sets_of_letters.append(list(possible_letters))
+        else:
+            #Getting the first chars set to initialize the nn
+            possible_letters = get_ascii_set(0,all_decoded_strings)
+            sets_of_letters.append(list(possible_letters))
+            init = step
 
         #handing the general cases before padding
-        for idx in range(step,length-to_remove,step):
+        for idx in range(init,length-to_remove,step):
             if idx >= length_limit_before_fixing_padding:
                 finishing = True
                 set_char = set()
@@ -162,7 +165,6 @@ def run(p=None, args_dic=None, encoded_text=None):
                         bitstring = process.remove_padding(bin_len, to_remove, bitstring, args_dic['bins'])
                     set_char.add(process.join_character_from_bitstring(bitstring,idx,step))
                 sets_of_letters.append(list(set_char))
-
             else:
                 #generating the possible char for this index
                 possible_letters = get_ascii_set(idx,all_decoded_strings)
@@ -178,7 +180,7 @@ def run(p=None, args_dic=None, encoded_text=None):
 
             #getting the index of  most probable combination if there is more than one combinations
             if len(combinaison_letter) > 1:
-                index = possible_strings.next_letters_table(args_dic['model_char_nn'],combinaison_letter,args_dic['next_character'])[0]
+                index = possible_strings.next_letters_table(args_dic['model_char_nn'],combinaison_letter,args_dic['next_character'], False)[0]
             else:
                 index = 0
 
@@ -323,7 +325,6 @@ def run(p=None, args_dic=None, encoded_text=None):
                 if len(encoded_words_bins) > (lcm_step_bin + math.ceil(step / bin_len)):
                     #decode the first part
                     decode_replicated_string = decode_replicated(list(itertools.product(*encoded_words_bins[:lcm_step_bin])), step, previous, start)
-
                     if decode_replicated_string == "error_decoding":
                         return decode_replicated_string
                     #call recursively the remaining part
