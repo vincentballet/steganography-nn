@@ -51,7 +51,8 @@ def run(p=None, args_dic=None, encoded_text=None):
         if args_dic['temperature'] < 1e-3:
             print("temperature has to be greater or equal 1e-3")
         encoded_data = encoded_text
-
+        
+    print("Stegotext is '{}'".format(encoded_data))
 
     torch.nn.Module.dump_patches = True
 
@@ -130,7 +131,7 @@ def run(p=None, args_dic=None, encoded_text=None):
             # keeping only ascii
             possible_letters = [l for l in possible_letters if onlyascii(l)]
             return possible_letters
-
+        
         #handling padding
         length, to_remove = process.get_removal_len(all_decoded_strings, bin_len, step)
         length_limit_before_fixing_padding = length - step - to_remove

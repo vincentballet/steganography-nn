@@ -33,7 +33,7 @@ def run(p=None, args_dic=None, plaintext=None):
         if args.temperature < 1e-3:
             p.error("--temperature has to be greater or equal 1e-3")
         with open(args_dic['secret_file'], 'r') as myfile:
-            secret_text = myfile.read()
+            secret_text = myfile.read() 
 
     elif args_dic:
         
@@ -43,7 +43,10 @@ def run(p=None, args_dic=None, plaintext=None):
             print("temperature has to be greater or equal 1e-3")
         secret_text = plaintext
 
-     
+    # Couldn't find a way to decode it afterwards so simply removing it.
+    secret_text = secret_text.replace('\r', '')
+    print("Secret text is '{}'".format(secret_text))
+
     #starting the counter
     epoch_start_time = time.time()
 

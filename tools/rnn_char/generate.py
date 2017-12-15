@@ -50,7 +50,7 @@ def generate(decoder, prime_str='A', predict_len=100, temperature=0.8, cuda=Fals
                 inp = inp.cuda()
         if reaching_end:
             possible_char.add(".")
-            possible_char.add("/n")
+            possible_char.add("\n")
         return possible_char
 
 # Run as standalone script
