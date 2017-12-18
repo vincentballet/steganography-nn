@@ -352,22 +352,23 @@ def run(p=None, args_dic=None, encoded_text=None):
         #Should be removed along with common tokens
         common_tokens_idx = [corpus.dictionary.word2idx[word] for word in common_tokens]
 
-        # Infer the bins that we used during the generate part of the algorithm
-        encoded_words_bins = []
-        for token in encoded_data_tokens:
-            bins_for_token = []
-            for idx, bin_ in enumerate(bins):
-                if token in bin_ and token not in common_tokens_idx:
-                    bins_for_token.append("{0:03b}".format(idx))
-            if len(bins_for_token) > 0:
-                encoded_words_bins.append(bins_for_token)
-
         # Len of ascii character
         step = 8
         # Len of bin in bits
         bin_len = math.log(args_dic['bins'], 2)
         #integer bin len
         int_bin_len = int(bin_len)
+
+        # Infer the bins that we used during the generate part of the algorithm
+        encoded_words_bins = []
+        for token in encoded_data_tokens:
+            bins_for_token = []
+            for idx, bin_ in enumerate(bins):
+                if token in bin_ and token not in common_tokens_idx:
+                    bins_for_token.append("{0:0{bit_len}b}".format(idx, bit_len=int_bin_len))
+            if len(bins_for_token) > 0:
+                encoded_words_bins.append(bins_for_token)
+
 
 
         start_time = time.time()
