@@ -81,6 +81,10 @@ def run(p=None, args_dic=None, plaintext=None):
     ntokens = len(corpus.dictionary)
     hidden = model.init_hidden(1)
     input = Variable(torch.rand(1, 1).mul(ntokens).long(), volatile=True)
+    #initializing the neural network to a new tweet
+    previous_word = '<eos>'
+    word_idx= corpus.dictionary.word2idx[previous_word]
+    input.data.fill_(word_idx)
 
     if args_dic['cuda']:
         input.data = input.data.cuda(0)
