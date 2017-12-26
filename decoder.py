@@ -342,7 +342,7 @@ def run(p=None, args_dic=None, encoded_text=None):
         return to_return
 
     if args_dic['bins'] > 1:
-        bins, zero, common_tokens = process.generating_bins(ABS_PATH, args_dic['corpus_name'], args_dic['bins'], args_dic['common_bin_factor'], args_dic['replication_factor'], args_dic['seed'],
+        bins, zero, common_tokens = process.generating_bins(ABS_PATH, args_dic['corpus_name'], args_dic['bins'], int(args_dic['bins']/2), args_dic['replication_factor'], args_dic['seed'],
                         args_dic['num_tokens'], args_dic['save_bins'], corpus)
 
         #extracting the data tokens
