@@ -346,6 +346,7 @@ def run(p=None, args_dic=None, encoded_text=None):
                         args_dic['num_tokens'], args_dic['save_bins'], corpus)
 
         #extracting the data tokens
+        encoded_data = encoded_data.replace("rt <user> : "," ")
         encoded_data_words = encoded_data.split()
         encoded_data_tokens = [corpus.dictionary.word2idx[w] for w in encoded_data_words]
 
@@ -356,7 +357,7 @@ def run(p=None, args_dic=None, encoded_text=None):
         step = 8
         # Len of bin in bits
         bin_len = math.log(args_dic['bins'], 2)
-        #integer bin len
+        # integer bin len
         int_bin_len = int(bin_len)
 
         # Infer the bins that we used during the generate part of the algorithm

@@ -2,7 +2,6 @@ import os
 import torch
 import codecs
 
-delete_list = ["rt <user> : ", " <user> : ", "<user> "]
 
 class Dictionary(object):
     def __init__(self):
@@ -38,9 +37,9 @@ class Corpus(object):
         with codecs.open(path,'r',encoding='utf8',errors='ignore') as f:
             tokens = 0
             for line in f:
-                for del_word in delete_list :
-                    line = line.replace(del_word, "");
-                words = line.split()
+                line = line.replace("rt <user> :","rt")
+                words = line.split() + ['<eos>']
+                words = ["rt <user> :" if w == "rt" else w for w in words]
                 if '<url>' not in words:
                     tokens += len(words)
                     for word in words:
@@ -51,9 +50,9 @@ class Corpus(object):
             ids = torch.LongTensor(tokens)
             token = 0
             for line in f:
-                for del_word in delete_list :
-                    line = line.replace(del_word, "");
-                words = line.split()
+                line = line.replace("rt <user> :","rt")
+                words = line.split() + ['<eos>']
+                words = ["rt <user> :" if w == "rt" else w for w in words]
                 if '<url>' not in words:
                     for word in words:
                         ids[token] = self.dictionary.word2idx[word]

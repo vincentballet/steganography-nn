@@ -82,7 +82,9 @@ def get_common_tokens(corpus, n):
     d = get_ordered_tokens(corpus)
     common_tokens = [item[0] for item in d]
     common_tokens = common_tokens[0:n]
-    return common_tokens + [':',",",'.','"','to','a','the','in','of','and','is']
+    common_tokens = common_tokens + [':',",",'.','to','a','the','in','of','and','is','rt <user> :']
+    common_tokens = list(set(common_tokens))
+    return common_tokens
 
 #create the bins
 def string2bins(bit_string, n_bins):
@@ -104,8 +106,6 @@ def generate_bins(corpus, nbr_bins, num_tokens, common_bin_factor, replication_f
 
         # common words
         common_tokens = get_common_tokens(corpus, num_tokens)
-        remove_words = ['<user>', 'rt','<eos>']
-        common_tokens = list(set(common_tokens) - set(remove_words))
         common_tokens_idx = [corpus.dictionary.word2idx[word] for word in common_tokens]
         bins = [tokens[i:i + words_in_bin] for i in range(0, len(tokens), words_in_bin)] # words to keep in each bin...
 
